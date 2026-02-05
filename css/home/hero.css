@@ -304,6 +304,9 @@
     font-size: 16px;
     padding: 12px 24px;
   }
+  .hero-card {
+    padding: 8px 8px 0px 8px;
+  }
 }
 
 @media (max-width: 520px) {
@@ -312,7 +315,7 @@
     gap: 0px;
   }
   .hero-shell {
-    padding: 134px 16px 0px 16px;
+    padding: 134px 12px 0px 12px;
   }
 }
 
