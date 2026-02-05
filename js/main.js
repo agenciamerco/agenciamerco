@@ -218,6 +218,181 @@
     });
   });
 
+  // Process steps
+  const processGroups = Array.from(document.querySelectorAll('[data-process]'));
+  processGroups.forEach((group) => {
+    const processSection = group.closest('.process');
+    const steps = Array.from(group.querySelectorAll('.process-step'));
+    const shot = processSection ? processSection.querySelector('.process-shot') : null;
+    const media = processSection ? processSection.querySelector('.process-media') : null;
+    const stepDuration = 10000;
+    let currentIndex = 0;
+    let timerId = null;
+    let isPaused = false;
+
+    if (steps.length === 0) {
+      return;
+    }
+
+    const syncHeights = () => {
+      if (!media) {
+        return;
+      }
+      if (window.innerWidth <= 900) {
+        media.style.height = '';
+        return;
+      }
+      const height = group.getBoundingClientRect().height;
+      if (height) {
+        media.style.height = `${height}px`;
+      }
+    };
+
+    const setActiveStep = (step) => {
+      currentIndex = steps.indexOf(step);
+      steps.forEach((item) => {
+        const isActive = item === step;
+        item.classList.toggle('is-active', isActive);
+        item.classList.remove('is-animating');
+        item.classList.remove('is-paused');
+        const toggle = item.querySelector('.process-toggle');
+        if (toggle) {
+          toggle.setAttribute('aria-expanded', isActive ? 'true' : 'false');
+        }
+      });
+
+      step.classList.add('is-animating');
+
+      if (shot) {
+        const nextSrc = step.dataset.image;
+        const nextAlt = step.querySelector('.process-step-title')?.textContent?.trim();
+        if (nextSrc && shot.getAttribute('src') !== nextSrc) {
+          shot.classList.remove('is-entering');
+          shot.classList.add('is-swapping');
+          const preloader = new Image();
+          preloader.src = nextSrc;
+          preloader.onload = () => {
+            shot.src = nextSrc;
+            if (nextAlt) {
+              shot.alt = nextAlt;
+            }
+            requestAnimationFrame(() => {
+              shot.classList.remove('is-swapping');
+              shot.classList.add('is-entering');
+            });
+          };
+        }
+      }
+
+      requestAnimationFrame(syncHeights);
+    };
+
+    const startAuto = () => {
+      if (timerId) {
+        clearInterval(timerId);
+      }
+      timerId = setInterval(() => {
+        if (isPaused) {
+          return;
+        }
+        currentIndex = (currentIndex + 1) % steps.length;
+        setActiveStep(steps[currentIndex]);
+      }, stepDuration);
+    };
+
+    const pauseAuto = () => {
+      isPaused = true;
+      const activeStep = group.querySelector('.process-step.is-active');
+      if (activeStep) {
+        activeStep.classList.add('is-paused');
+      }
+    };
+
+    const resumeAuto = () => {
+      isPaused = false;
+      const activeStep = group.querySelector('.process-step.is-active');
+      if (activeStep) {
+        activeStep.classList.remove('is-paused');
+      }
+    };
+
+    const setStepsMinHeight = () => {
+      if (!group || steps.length === 0) {
+        return;
+      }
+      const clone = group.cloneNode(true);
+      clone.style.position = 'absolute';
+      clone.style.visibility = 'hidden';
+      clone.style.pointerEvents = 'none';
+      clone.style.height = 'auto';
+      clone.style.width = `${group.clientWidth}px`;
+      const parent = group.parentElement || group;
+      parent.appendChild(clone);
+
+      let maxHeight = 0;
+      const cloneSteps = Array.from(clone.querySelectorAll('.process-step'));
+      cloneSteps.forEach((cloneStep, index) => {
+        cloneSteps.forEach((item, idx) => {
+          item.classList.toggle('is-active', idx === index);
+        });
+        maxHeight = Math.max(maxHeight, clone.offsetHeight);
+      });
+
+      parent.removeChild(clone);
+      group.style.minHeight = `${maxHeight}px`;
+      group.style.height = `${maxHeight}px`;
+      syncHeights();
+    };
+
+    steps.forEach((step) => {
+      const toggle = step.querySelector('.process-toggle');
+      if (!toggle) {
+        return;
+      }
+      toggle.addEventListener('click', () => {
+        setActiveStep(step);
+        startAuto();
+      });
+    });
+
+    const initial = steps[0];
+    currentIndex = 0;
+    setActiveStep(initial);
+    setStepsMinHeight();
+    startAuto();
+
+    window.addEventListener('resize', () => {
+      setStepsMinHeight();
+    });
+
+    window.addEventListener('load', () => {
+      setStepsMinHeight();
+    });
+
+    steps.forEach((step) => {
+      step.addEventListener('mouseenter', () => {
+        if (step.classList.contains('is-active')) {
+          pauseAuto();
+        }
+      });
+      step.addEventListener('mouseleave', () => {
+        if (step.classList.contains('is-active')) {
+          resumeAuto();
+        }
+      });
+      step.addEventListener('focusin', () => {
+        if (step.classList.contains('is-active')) {
+          pauseAuto();
+        }
+      });
+      step.addEventListener('focusout', () => {
+        if (step.classList.contains('is-active')) {
+          resumeAuto();
+        }
+      });
+    });
+  });
+
   // Before/after compare
   const compareWidgets = Array.from(document.querySelectorAll('[data-compare]'));
   compareWidgets.forEach((widget) => {

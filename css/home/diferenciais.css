@@ -1,5 +1,5 @@
 .diferenciais {
-  padding: 24px 0px 120px 0px;
+  padding: 24px 0px 180px 0px;
   width: 100%;
 }
 
@@ -303,6 +303,49 @@
   }
   .compare-shell {
     margin-top: -13px;
+  }
+
+  .orbit-card-1 {
+    top: 15%;
+    left: 24%;
+    transform: translate(-50%, 0);
+  }
+
+  .orbit-card-2 {
+    top: 15%;
+    right: 14%;
+  }
+
+  .orbit-card-3 {
+    top: 34%;
+    right: 0%;
+  }
+
+  .orbit-card-4 {
+    top: 56%;
+    right: 0%;
+  }
+
+  .orbit-card-5 {
+    top: 56%;
+    left: 0%;
+  }
+
+  .orbit-card-6 {
+    top: 34%;
+    left: 0%;
+  }
+
+  .orbit-card-7 {
+    bottom: 15%;
+    right: -2%;
+    transform: translate(-50%, 0);
+  }
+
+  .orbit-card-8 {
+    bottom: 15%;
+    right: 0%;
+    transform: translate(-50%, 0);
   }
 }
 

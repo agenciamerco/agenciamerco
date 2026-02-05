@@ -27,6 +27,7 @@
 
 #inicio {
   padding: 0px 0px;
+  overflow: hidden;
 }
 
 @media (max-width: 1540px) {
