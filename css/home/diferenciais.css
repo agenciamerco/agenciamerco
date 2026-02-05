@@ -208,7 +208,7 @@
   align-items: center;
   margin-top: 32px;
   width: 100%;
-  padding: 0px 28px;
+  padding: 0px 40px;
 }
 
 .compare-widget {
@@ -302,13 +302,13 @@
     width: 90px;
   }
   .compare-shell {
-    margin-top: 0px;
+    margin-top: -13px;
   }
 }
 
 @media (max-width: 1000px) {
   .diferenciais {
-    padding: 80px 0px 100px 0px;
+    padding: 80px 0px 40px 0px;
   }
 
   .diferenciais-orbit {
