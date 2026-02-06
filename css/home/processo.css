@@ -1,5 +1,5 @@
 .process {
-  padding: 140px 0px 110px 0px;
+  padding: 140px 0px 130px 0px;
   width: 100%;
   border-bottom: 1px solid rgba(6, 4, 0, 0.1);
 }
@@ -26,7 +26,7 @@
   font-size: 15px;
   font-weight: 400;
   color: rgba(6, 4, 0, 0.8);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   border: 1px solid rgba(6, 4, 0, 0.1);
 }
 
@@ -265,6 +265,7 @@
 
   .process-preview {
     justify-content: flex-start;
+    margin-top: 20px;
   }
 }
 
@@ -336,5 +337,21 @@
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .process-step.is-animating::after {
+    animation: none;
+    transform: scaleX(1);
+  }
+
+  .process-shot,
+  .process-shot.is-swapping,
+  .process-shot.is-entering {
+    transition: none;
+    animation: none;
+    transform: none;
+    opacity: 1;
   }
 }

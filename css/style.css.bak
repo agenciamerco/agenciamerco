@@ -6,7 +6,7 @@ body {
   box-sizing: border-box;
   font-family: 'Inter', sans-serif;
   scroll-behavior: smooth;
-  scroll-padding-top: 24px;
+  scroll-padding-top: 64px;
 }
 
 body {
@@ -19,33 +19,6 @@ a {
 }
 ul {
   list-style: none;
-}
-button {
-  font-family: inherit;
-}
-
-.skip-link {
-  position: absolute;
-  left: 16px;
-  top: 12px;
-  padding: 10px 14px;
-  background: #0a0908;
-  color: #ffffff;
-  border-radius: 8px;
-  transform: translateY(-200%);
-  transition: transform 0.2s ease;
-  z-index: 9999;
-}
-
-.skip-link:focus-visible {
-  transform: translateY(0);
-}
-
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid #d32c17;
-  outline-offset: 3px;
-  border-radius: 10px;
 }
 
 ::selection {
@@ -99,32 +72,3 @@ button:focus-visible {
   font-display: swap;
 }
 
-/* Shared motion utilities */
-:root {
-  --reveal-distance: 18px;
-  --reveal-duration: 720ms;
-  --reveal-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
-}
-
-.reveal {
-  opacity: 0;
-  transform: translateY(var(--reveal-distance));
-  transition:
-    opacity var(--reveal-duration) var(--reveal-ease),
-    transform var(--reveal-duration) var(--reveal-ease);
-  transition-delay: var(--reveal-delay, 0ms);
-  will-change: opacity, transform;
-}
-
-.reveal.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-}

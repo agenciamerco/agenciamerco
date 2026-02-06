@@ -1,4 +1,5 @@
 (() => {
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const nav = document.getElementById('primary-nav');
   const toggle = document.querySelector('.menu-toggle');
 
@@ -8,6 +9,7 @@
       nav.classList.remove('is-open');
       toggle.classList.remove('is-active');
       toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-label', 'Abrir menu');
       document.body.classList.remove('nav-open');
     };
 
@@ -15,6 +17,7 @@
       const isOpen = nav.classList.toggle('is-open');
       toggle.classList.toggle('is-active', isOpen);
       toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      toggle.setAttribute('aria-label', isOpen ? 'Fechar menu' : 'Abrir menu');
       document.body.classList.toggle('nav-open', isOpen);
     };
 
@@ -34,8 +37,7 @@
   // Reveal on scroll (start only after first scroll)
   const revealEls = Array.from(document.querySelectorAll('[data-reveal]'));
   if (revealEls.length) {
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReduced) {
+    if (prefersReducedMotion) {
       revealEls.forEach((el) => el.classList.add('is-visible'));
     } else {
       const startObserving = () => {
@@ -73,7 +75,7 @@
     let activeIndex = Math.max(0, tabs.findIndex((tab) => tab.getAttribute('aria-selected') === 'true'));
     let timerId = null;
     let isPaused = false;
-    let autoEnabled = window.innerWidth >= minAutoWidth;
+    let autoEnabled = !prefersReducedMotion && window.innerWidth >= minAutoWidth;
 
     tabs.forEach((tab) => {
       const isActive = tab.getAttribute('aria-selected') === 'true';
@@ -169,7 +171,7 @@
     startRotation();
 
     const updateAutoRotation = () => {
-      const shouldEnable = window.innerWidth >= minAutoWidth;
+      const shouldEnable = !prefersReducedMotion && window.innerWidth >= minAutoWidth;
       if (shouldEnable === autoEnabled) {
         return;
       }
@@ -351,7 +353,9 @@
       }
       toggle.addEventListener('click', () => {
         setActiveStep(step);
-        startAuto();
+        if (!prefersReducedMotion) {
+          startAuto();
+        }
       });
     });
 
@@ -359,7 +363,9 @@
     currentIndex = 0;
     setActiveStep(initial);
     setStepsMinHeight();
-    startAuto();
+    if (!prefersReducedMotion) {
+      startAuto();
+    }
 
     window.addEventListener('resize', () => {
       setStepsMinHeight();
@@ -410,5 +416,51 @@
     range.addEventListener('input', (event) => {
       setPosition(event.target.value);
     });
+  });
+
+  // FAQ accordion
+  const faqLists = Array.from(document.querySelectorAll('[data-faq]'));
+  faqLists.forEach((list) => {
+    const items = Array.from(list.querySelectorAll('.faq-item'));
+    if (items.length === 0) {
+      return;
+    }
+
+    const setActive = (item) => {
+      items.forEach((entry) => {
+        const isActive = entry === item;
+        entry.classList.toggle('is-active', isActive);
+        const toggle = entry.querySelector('.faq-toggle');
+        const panel = entry.querySelector('.faq-panel');
+        if (toggle) {
+          toggle.setAttribute('aria-expanded', isActive ? 'true' : 'false');
+        }
+        if (panel) {
+          panel.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+        }
+      });
+    };
+
+    items.forEach((item) => {
+      const toggle = item.querySelector('.faq-toggle');
+      if (!toggle) {
+        return;
+      }
+      toggle.addEventListener('click', () => {
+        if (item.classList.contains('is-active')) {
+          item.classList.remove('is-active');
+          toggle.setAttribute('aria-expanded', 'false');
+          const panel = item.querySelector('.faq-panel');
+          if (panel) {
+            panel.setAttribute('aria-hidden', 'true');
+          }
+        } else {
+          setActive(item);
+        }
+      });
+    });
+
+    const initial = items.find((item) => item.classList.contains('is-active')) || items[0];
+    setActive(initial);
   });
 })();
