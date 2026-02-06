@@ -327,7 +327,10 @@
       border-top: 1px solid #F2F4F7;
       background: white;
       flex-shrink: 0;
-      z-index: 5;
+      z-index: 10;
+      position: sticky;
+      bottom: 0;
+      width: 100%;
     }
 
     .btn {
@@ -362,6 +365,30 @@
       background: #F9FAFB;
     }
 
+    .field-alert {
+      position: fixed;
+      left: 50%;
+      top: 20px;
+      transform: translate(-50%, -16px);
+      background: var(--merco-red);
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: 6px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 200;
+      font-size: 14px;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .field-alert.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
     #success-overlay {
       display: none;
       position: absolute;
@@ -372,7 +399,8 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 40px;
+      padding: 100px 40px 40px 40px;
+
     }
 
     @media (max-width: 900px) {
@@ -396,9 +424,8 @@
 
       .form-section {
         height: auto;
-        min-height: 600px;
+        min-height: 100%;
         border-radius: 24px 24px 0 0;
-
       }
 
       .form-content-wrapper,
@@ -413,6 +440,11 @@
 
       .question-title {
         font-size: 32px;
+      }
+
+      #success-overlay {
+        justify-content: flex-start;
+
       }
     }
   </style>
@@ -601,7 +633,7 @@
                   <input type="checkbox" name="terms" required>
                   <div class="card-body" style="font-size: 13px; height: auto; padding: 12px; border-style: dashed;">
                     <i data-lucide="check-circle-2"></i>
-                    Aceito o contato da Merco via WhatsApp
+                    Aceito o contato da Merco
                   </div>
                 </label>
               </div>
@@ -617,8 +649,10 @@
     </main>
   </div>
 
+  <div id="field-alert" class="field-alert" role="alert" aria-live="assertive"></div>
+
   <script>
-    const WHATS_NUMBER = "5516992006155";
+    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1469323175438319751/AF7VL-ictOHIy8su1a9tY3DVLv6CHwixpipqzYlfYfhbLmtawCqCj8Ol8GL5fM_zqsiU";
 
     let current = 1;
     const total = 5;
@@ -630,6 +664,8 @@
     const fraction = document.getElementById('step-fraction');
     const success = document.getElementById('success-overlay');
     const wrapper = document.querySelector('.form-content-wrapper');
+    const alertBox = document.getElementById('field-alert');
+    let alertTimer = null;
 
     const checkboxOther = document.getElementById('checkbox-other');
     const otherWrap = document.getElementById('other-service-wrap');
@@ -685,10 +721,19 @@
       const active = document.querySelector('.step.active');
       const required = active.querySelectorAll('[required]');
       let valid = true;
+      let firstMissingLabel = '';
+      let firstMissingField = null;
       required.forEach(i => {
         if (!i.value || (i.type === 'checkbox' && !i.checked)) {
           valid = false;
           i.style.borderColor = 'var(--merco-red)';
+          if (!firstMissingField) {
+            firstMissingField = i;
+          }
+          if (!firstMissingLabel) {
+            const label = i.closest('.field-group')?.querySelector('label');
+            firstMissingLabel = label ? label.innerText.replace('*', '').trim() : 'um campo obrigatório';
+          }
         } else {
           i.style.borderColor = '#D0D5DD';
         }
@@ -696,10 +741,33 @@
 
       if (current === 3) {
         const checked = active.querySelectorAll('input[name="services"]:checked');
-        if (checked.length === 0) valid = false;
+        if (checked.length === 0) {
+          valid = false;
+          firstMissingLabel = firstMissingLabel || 'selecione uma opção em "O que você precisa?"';
+          if (!firstMissingField) {
+            firstMissingField = active.querySelector('input[name="services"]');
+          }
+        }
+      }
+
+      if (!valid) {
+        showAlert(`Por favor, preencha ${firstMissingLabel}.`);
+        if (firstMissingField) {
+          firstMissingField.focus();
+        }
       }
 
       return valid;
+    }
+
+    function showAlert(message) {
+      if (!alertBox) return;
+      alertBox.textContent = message;
+      alertBox.classList.add('is-visible');
+      clearTimeout(alertTimer);
+      alertTimer = setTimeout(() => {
+        alertBox.classList.remove('is-visible');
+      }, 2800);
     }
 
     document.getElementById('phone').addEventListener('input', (e) => {
@@ -707,7 +775,7 @@
       e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
     });
 
-    function send() {
+    async function send() {
       const fd = new FormData(form);
       const data = Object.fromEntries(fd.entries());
 
@@ -723,25 +791,52 @@
         }
       }
 
-      const text = `Olá Merco! 👋 Me chamo *${data.name}*.
-Desejo qualificar um novo projeto.
+      const payload = {
+        username: 'Merco Leads',
+        embeds: [
+          {
+            title: 'Novo formulário de qualificação',
+            color: 0xD32C17,
+            fields: [
+              { name: '👤 Nome', value: data.name || '-', inline: false },
+              { name: '✉️ E-mail', value: data.email || '-', inline: false },
+              { name: '📱 WhatsApp', value: data.phone || '-', inline: false },
+              { name: '🏢 Empresa', value: `${data.company || '-'} (${data.business_type || '-'})`, inline: false },
+              { name: '🏷️ Segmento', value: data.industry || 'Não informado', inline: false },
+              { name: '🛠️ O que precisa', value: svcs.join(', ') || '-', inline: false },
+              { name: '💰 Investimento', value: data.budget || '-', inline: false },
+              { name: '⏳ Prazo', value: data.deadline || '-', inline: false },
+              { name: '📝 Mensagem', value: data.message || 'Sem detalhes extras.', inline: false }
+            ],
+            timestamp: new Date().toISOString()
+          }
+        ]
+      };
 
-📧 *E-mail:* ${data.email}
-📌 *Empresa:* ${data.company} (${data.business_type})
-🏷️ *Segmento:* ${data.industry || 'Não informado'}
-🛠 *O que precisa:* ${svcs.join(', ')}
-💰 *Investimento:* ${data.budget}
-⏳ *Prazo:* ${data.deadline}
-
-📝 *Mensagem:*
-${data.message || 'Sem detalhes extras.'}
-
-Fico no aguardo!`;
-
+      success.innerHTML = `
+        <h2 class="question-title">Solicitação enviada!</h2>
+        <p>Agradecemos pela preferência. Em breve, entraremos em contato para entender melhor seu projeto.</p>
+      `;
       success.style.display = 'flex';
-      setTimeout(() => {
-        window.location.href = `https://wa.me/${WHATS_NUMBER}?text=${encodeURIComponent(text)}`;
-      }, 1800);
+      try {
+        const res = await fetch(DISCORD_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          throw new Error('Falha ao enviar para o Discord.');
+        }
+        form.reset();
+        current = 1;
+        update();
+      } catch (err) {
+        success.innerHTML = `
+          <h2 class="question-title">Não foi possível enviar.</h2>
+          <p>Verifique o webhook do Discord e tente novamente.</p>
+        `;
+      }
     }
   </script>
 </body>

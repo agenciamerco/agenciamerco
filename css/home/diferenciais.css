@@ -249,7 +249,7 @@
   height: 100%;
   opacity: 0;
   cursor: ew-resize;
-  z-index: 32;
+  z-index: 40;
 }
 
 .compare-handle {
@@ -262,6 +262,7 @@
   background: #d32c17;
   box-shadow: 0 0 0 1px rgba(211, 44, 23, 0.2);
   z-index: 32;
+  pointer-events: none;
 }
 
 .compare-handle span {
@@ -277,6 +278,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
 }
 
 .compare-handle span::before {
